@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 合同审查工具 - 智能识别合同风险</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">⚖️</span>
+                <div>
+                    <h1>AI 合同审查工具</h1>
+                    <p class="subtitle">基于大模型的智能合同风险识别与修改建议</p>
+                </div>
+            </div>
+            <div class="badges">
+                <span class="badge badge-green">免费试用</span>
+                <span class="badge badge-blue">隐私安全</span>
+            </div>
+        </header>
+
+        <!-- 输入区域 -->
+        <section class="input-section">
+            <div class="input-tabs">
+                <button class="tab-btn active" data-tab="text">📝 粘贴文本</button>
+                <button class="tab-btn" data-tab="file">📁 上传文件</button>
+            </div>
+
+            <!-- 文本粘贴 -->
+            <div class="tab-content active" id="tab-text">
+                <textarea id="contractText" placeholder="请粘贴合同文本内容...
+
+支持：服务合同、劳动合同、买卖合同、租赁合同、保密协议、合作协议等各类合同。
+
+提示：文本长度建议 50-20000 字，过长的合同建议分章节审查。"></textarea>
+            </div>
+
+            <!-- 文件上传 -->
+            <div class="tab-content" id="tab-file">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <p class="upload-text">拖拽 .txt 文件到此处，或</p>
+                    <label class="upload-btn">
+                        选择文件
+                        <input type="file" id="fileInput" accept=".txt" hidden>
+                    </label>
+                    <p class="upload-hint">仅支持 .txt 格式，编码 UTF-8 或 GBK</p>
+                    <p class="file-name" id="fileName"></p>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="review-btn" id="reviewBtn" onclick="reviewContract()">
+                    <span class="btn-text">🔍 开始审查</span>
+                </button>
+                <button class="clear-btn" onclick="clearAll()">清空</button>
+            </div>
+        </section>
+
+        <!-- 加载状态 -->
+        <section class="loading-section" id="loadingSection" style="display:none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">AI 正在审查合同，请稍候...</p>
+            <p class="loading-hint">通常需要 10-30 秒，合同越长耗时越久</p>
+        </section>
+
+        <!-- 错误提示 -->
+        <section class="error-section" id="errorSection" style="display:none;">
+            <div class="error-box">
+                <span class="error-icon">⚠️</span>
+                <p class="error-text" id="errorText"></p>
+            </div>
+        </section>
+
+        <!-- 结果区域 -->
+        <section class="result-section" id="resultSection" style="display:none;">
+            <!-- 概览卡片 -->
+            <div class="overview-card">
+                <div class="overview-header">
+                    <h2>📊 审查概览</h2>
+                    <span class="contract-type" id="contractType"></span>
+                </div>
+                <div class="risk-stats">
+                    <div class="stat-item stat-high">
+                        <span class="stat-number" id="highCount">0</span>
+                        <span class="stat-label">高风险</span>
+                    </div>
+                    <div class="stat-item stat-medium">
+                        <span class="stat-number" id="mediumCount">0</span>
+                        <span class="stat-label">中风险</span>
+                    </div>
+                    <div class="stat-item stat-low">
+                        <span class="stat-number" id="lowCount">0</span>
+                        <span class="stat-label">低风险</span>
+                    </div>
+                    <div class="stat-item stat-overall">
+                        <span class="stat-number" id="overallLevel">-</span>
+                        <span class="stat-label">整体风险</span>
+                    </div>
+                </div>
+                <p class="summary-text" id="summaryText"></p>
+            </div>
+
+            <!-- 风险项列表 -->
+            <div class="risk-list" id="riskList">
+                <!-- 动态生成 -->
+            </div>
+
+            <!-- 关键建议 -->
+            <div class="advice-card" id="adviceCard" style="display:none;">
+                <h3>💡 关键建议</h3>
+                <ul id="adviceList"></ul>
+            </div>
+
+            <!-- 底部提示 -->
+            <div class="disclaimer">
+                <p>⚠️ 本工具由 AI 生成审查结果，仅供参考，不构成法律意见。重要合同建议咨询专业律师。</p>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>AI 合同审查工具 · 基于 DeepSeek 大模型 · 数据仅用于本次审查，不存储</p>
+        </footer>
+    </div>
+
+    <script>
+        // Tab 切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 文件上传
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        let uploadedFile = null;
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.txt')) {
+                showError('仅支持 .txt 格式文件');
+                return;
+            }
+            uploadedFile = file;
+            fileName.textContent = '已选择: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        }
+
+        // 审查合同
+        async function reviewContract() {
+            const text = document.getElementById('contractText').value.trim();
+            const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+
+            // 验证输入
+            if (activeTab === 'text' && !text) {
+                showError('请粘贴合同文本');
+                return;
+            }
+            if (activeTab === 'file' && !uploadedFile) {
+                showError('请选择要上传的文件');
+                return;
+            }
+
+            // 显示加载
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('reviewBtn').disabled = true;
+
+            try {
+                const formData = new FormData();
+                if (activeTab === 'text') {
+                    formData.append('text', text);
+                } else {
+                    formData.append('file', uploadedFile);
+                }
+
+                const response = await fetch('/api/review', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '审查失败');
+                }
+
+                displayResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('reviewBtn').disabled = false;
+            }
+        }
+
+        // 显示结果
+        function displayResult(data) {
+            document.getElementById('resultSection').style.display = 'block';
+
+            // 概览
+            document.getElementById('contractType').textContent = data.contract_type;
+            document.getElementById('highCount').textContent = data.high_risk_count;
+            document.getElementById('mediumCount').textContent = data.medium_risk_count;
+            document.getElementById('lowCount').textContent = data.low_risk_count;
+            document.getElementById('overallLevel').textContent = data.overall_risk_level;
+            document.getElementById('overallLevel').className = 'stat-number level-' + data.overall_risk_level;
+            document.getElementById('summaryText').textContent = data.summary;
+
+            // 风险项列表
+            const riskList = document.getElementById('riskList');
+            riskList.innerHTML = '';
+
+            // 按风险等级排序：高 > 中 > 低
+            const sorted = [...data.risk_items].sort((a, b) => {
+                const order = {'高': 0, '中': 1, '低': 2};
+                return order[a.risk_level] - order[b.risk_level];
+            });
+
+            sorted.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'risk-card risk-' + item.risk_level;
+                card.innerHTML = `
+                    <div class="risk-header">
+                        <span class="risk-badge badge-${item.risk_level}">${item.risk_level}风险</span>
+                        <span class="risk-type">${item.clause_type}</span>
+                    </div>
+                    <div class="risk-body">
+                        <div class="risk-field">
+                            <span class="field-label">📌 原文摘录</span>
+                            <p class="field-text original">${escapeHtml(item.original_text)}</p>
+                        </div>
+                        <div class="risk-field">
+                            <span class="field-label">💬 大白话解释</span>
+                            <p class="field-text">${escapeHtml(item.plain_explanation)}</p>
+                        </div>
+                        <div class="risk-field">
+                            <span class="field-label">⚠️ 风险说明</span>
+                            <p class="field-text">${escapeHtml(item.risk_description)}</p>
+                        </div>
+                        <div class="risk-field">
+                            <span class="field-label">✅ 修改建议</span>
+                            <p class="field-text suggestion">${escapeHtml(item.suggestion)}</p>
+                        </div>
+                    </div>
+                `;
+                riskList.appendChild(card);
+            });
+
+            // 关键建议
+            if (data.key_advice && data.key_advice.length > 0) {
+                document.getElementById('adviceCard').style.display = 'block';
+                const adviceList = document.getElementById('adviceList');
+                adviceList.innerHTML = '';
+                data.key_advice.forEach(advice => {
+                    const li = document.createElement('li');
+                    li.textContent = advice;
+                    adviceList.appendChild(li);
+                });
+            }
+
+            // 滚动到结果
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('errorSection').style.display = 'block';
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        // 清空
+        function clearAll() {
+            document.getElementById('contractText').value = '';
+            document.getElementById('fileInput').value = '';
+            uploadedFile = null;
+            fileName.textContent = '';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
