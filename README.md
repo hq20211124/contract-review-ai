@@ -1,4 +1,4 @@
-# ⚖️ AI 合同审查工具
+﻿# ⚖️ AI 合同审查工具
 
 基于 DeepSeek 大模型的智能合同风险审查工具，支持文本粘贴和文件上传，自动识别合同风险条款并给出修改建议。
 
@@ -26,7 +26,7 @@
 **1. 克隆项目**
 
 ```bash
-git clone https://github.com/your-username/contract-review-ai.git
+git clone https://github.com/hq20211124/contract-review-ai.git
 cd contract-review-ai
 ```
 
@@ -117,7 +117,7 @@ python app.py
 sudo apt update && sudo apt install python3 python3-pip
 
 # 2. 克隆项目并安装依赖
-git clone https://github.com/your-username/contract-review-ai.git
+git clone https://github.com/hq20211124/contract-review-ai.git
 cd contract-review-ai
 pip3 install -r requirements.txt
 

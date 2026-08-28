@@ -1,4 +1,4 @@
-# V2EX 推广帖
+﻿# V2EX 推广帖
 
 标题：做了个 AI 合同审查工具，开源了，帮你识别合同里的坑
 
@@ -17,7 +17,7 @@
 
 技术栈：FastAPI + DeepSeek Chat + 原生前端，无框架依赖，Windows 双击 run.bat 就能跑。
 
-GitHub：https://github.com/your-username/contract-review-ai
+GitHub：https://github.com/hq20211124/contract-review-ai
 
 放了个示例合同在 examples/ 目录里，故意埋了 10 几个坑，可以直接拿来测试。
 

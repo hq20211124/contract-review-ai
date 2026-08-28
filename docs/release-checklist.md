@@ -1,4 +1,4 @@
-# 发布检查清单
+﻿# 发布检查清单
 
 ## 发布前（今天）
 
@@ -48,9 +48,9 @@
 ## 推广发布（第3-4天）
 
 - [ ] 1. 替换推广文案里的占位符
-  - [ ] docs/v2ex-post.md 里的 your-username 替换成真实用户名
-  - [ ] docs/juejin-post.md 里的 your-username 替换成真实用户名
-  - [ ] README.md 里的 your-username 替换成真实用户名
+  - [ ] docs/v2ex-post.md 里的 hq20211124 替换成真实用户名
+  - [ ] docs/juejin-post.md 里的 hq20211124 替换成真实用户名
+  - [ ] README.md 里的 hq20211124 替换成真实用户名
 
 - [ ] 2. V2EX 发帖
   - [ ] 节点：分享创造 或 程序员

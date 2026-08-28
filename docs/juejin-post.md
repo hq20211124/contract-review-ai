@@ -1,4 +1,4 @@
-# 掘金推广文
+﻿# 掘金推广文
 
 标题：我用 DeepSeek API 做了个 AI 合同审查工具，帮你避开合同里的坑（附完整实现）
 
@@ -116,7 +116,7 @@ contract-review-ai/
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-username/contract-review-ai.git
+git clone https://github.com/hq20211124/contract-review-ai.git
 cd contract-review-ai
 
 # 2. 安装依赖
@@ -173,7 +173,7 @@ python app.py
 
 如果你也经常签合同、踩坑，欢迎试试这个工具，也欢迎提 Issue 和 PR。
 
-GitHub：https://github.com/your-username/contract-review-ai
+GitHub：https://github.com/hq20211124/contract-review-ai
 
 如果觉得有用，给个 Star 支持一下 ⭐
 
